@@ -1,115 +1,107 @@
 const response = document.getElementById("response");
 const mic = document.getElementById("mic");
 
-const SpeechRecognition =
-  window.SpeechRecognition || window.webkitSpeechRecognition;
+response.innerHTML = "JARVIS SYSTEM READY";
 
-if (!SpeechRecognition) {
-  response.innerHTML = "Voice recognition is not supported.";
-} else {
+mic.onclick = function () {
+    response.innerHTML = "BUTTON WORKING...";
 
-  const recognition = new SpeechRecognition();
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
 
-  recognition.lang = "en-IN";
-  recognition.continuous = false;
-  recognition.interimResults = false;
+    if (!SpeechRecognition) {
+        response.innerHTML =
+            "❌ Speech recognition is not supported by this browser.";
+        return;
+    }
 
-  mic.addEventListener("click", () => {
+    const recognition = new SpeechRecognition();
 
-    response.innerHTML = "🎤 Listening, sir...";
+    recognition.lang = "en-IN";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    response.innerHTML = "🎤 LISTENING...";
+
+    recognition.onresult = function (event) {
+
+        const command =
+            event.results[0][0].transcript;
+
+        response.innerHTML =
+            "YOU SAID:<br>" + command;
+
+        jarvis(command);
+    };
+
+    recognition.onerror = function (event) {
+
+        response.innerHTML =
+            "❌ ERROR:<br>" + event.error;
+
+        console.log(event.error);
+    };
+
+    recognition.onend = function () {
+
+        console.log("Recognition ended");
+    };
 
     try {
-      recognition.start();
+        recognition.start();
     } catch (error) {
-      console.log(error);
+        response.innerHTML =
+            "❌ Could not start microphone.";
+        console.log(error);
     }
-  });
-
-  recognition.addEventListener("result", (event) => {
-
-    const command =
-      event.results[0][0].transcript.trim();
-
-    console.log("You said:", command);
-
-    response.innerHTML =
-      "You said:<br><strong>" + command + "</strong>";
-
-    setTimeout(() => {
-      jarvisReply(command);
-    }, 500);
-  });
-
-  recognition.addEventListener("error", (event) => {
-
-    console.log("Speech error:", event.error);
-
-    response.innerHTML =
-      "⚠️ I couldn't process that. Please try again.";
-  });
-
-  recognition.addEventListener("end", () => {
-    console.log("Listening ended");
-  });
-}
+};
 
 
-function jarvisReply(command) {
+function jarvis(command) {
 
-  const text = command.toLowerCase();
+    command = command.toLowerCase();
 
-  let reply = "";
+    let answer;
 
-  if (text.includes("hello") || text.includes("hi")) {
+    if (command.includes("hello")) {
 
-    reply = "Hello, sir. How may I assist you?";
+        answer = "Hello sir. How may I assist you?";
 
-  } else if (
-    text.includes("your name") ||
-    text.includes("who are you")
-  ) {
+    } else if (command.includes("your name")) {
 
-    reply = "I am JARVIS, your personal AI assistant.";
+        answer = "I am JARVIS, your personal AI assistant.";
 
-  } else if (text.includes("time")) {
+    } else if (command.includes("time")) {
 
-    reply =
-      "The current time is " +
-      new Date().toLocaleTimeString("en-IN");
+        answer =
+            "The time is " +
+            new Date().toLocaleTimeString();
 
-  } else if (text.includes("how are you")) {
+    } else {
 
-    reply =
-      "I am functioning perfectly, sir.";
+        answer =
+            "I heard you say " +
+            command +
+            ". My AI brain is still under development.";
 
-  } else {
+    }
 
-    reply =
-      "I heard you say: " +
-      command +
-      ". My full AI brain is coming soon, sir.";
-  }
+    response.innerHTML = answer;
 
-  response.innerHTML = reply;
-
-  speak(reply);
+    speak(answer);
 }
 
 
 function speak(text) {
 
-  if (!("speechSynthesis" in window)) {
-    return;
-  }
+    const speech =
+        new SpeechSynthesisUtterance(text);
 
-  window.speechSynthesis.cancel();
+    speech.lang = "en-IN";
+    speech.rate = 0.9;
+    speech.pitch = 0.9;
 
-  const speech =
-    new SpeechSynthesisUtterance(text);
-
-  speech.lang = "en-IN";
-  speech.rate = 0.9;
-  speech.pitch = 0.9;
-
-  window.speechSynthesis.speak(speech);
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(speech);
 }
