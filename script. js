@@ -4,79 +4,90 @@ const mic = document.getElementById("mic");
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 
-let recognition;
+if (!SpeechRecognition) {
+  response.innerHTML = "Voice recognition is not supported.";
+} else {
 
-if (SpeechRecognition) {
-
-  recognition = new SpeechRecognition();
+  const recognition = new SpeechRecognition();
 
   recognition.lang = "en-IN";
   recognition.continuous = false;
   recognition.interimResults = false;
 
-  mic.onclick = function () {
+  mic.addEventListener("click", () => {
 
-    response.innerHTML = "Listening, sir...";
+    response.innerHTML = "🎤 Listening, sir...";
 
-    recognition.start();
-  };
+    try {
+      recognition.start();
+    } catch (error) {
+      console.log(error);
+    }
+  });
 
-  recognition.onresult = function (event) {
+  recognition.addEventListener("result", (event) => {
 
-    const command = event.results[0][0].transcript;
+    const command =
+      event.results[0][0].transcript.trim();
+
+    console.log("You said:", command);
 
     response.innerHTML =
       "You said:<br><strong>" + command + "</strong>";
 
-    jarvisReply(command);
-  };
+    setTimeout(() => {
+      jarvisReply(command);
+    }, 500);
+  });
 
-  recognition.onerror = function () {
+  recognition.addEventListener("error", (event) => {
+
+    console.log("Speech error:", event.error);
 
     response.innerHTML =
-      "I couldn't hear you, sir. Please try again.";
-  };
+      "⚠️ I couldn't process that. Please try again.";
+  });
 
-} else {
-
-  response.innerHTML =
-    "Voice recognition is not supported in this browser.";
+  recognition.addEventListener("end", () => {
+    console.log("Listening ended");
+  });
 }
 
 
 function jarvisReply(command) {
 
-  command = command.toLowerCase();
+  const text = command.toLowerCase();
 
-  let reply;
+  let reply = "";
 
-  if (command.includes("hello") ||
-      command.includes("hi")) {
+  if (text.includes("hello") || text.includes("hi")) {
 
     reply = "Hello, sir. How may I assist you?";
 
-  } else if (command.includes("your name")) {
+  } else if (
+    text.includes("your name") ||
+    text.includes("who are you")
+  ) {
 
     reply = "I am JARVIS, your personal AI assistant.";
 
-  } else if (command.includes("who are you")) {
-
-    reply = "I am JARVIS. I am here to assist you.";
-
-  } else if (command.includes("time")) {
-
-    const now = new Date();
+  } else if (text.includes("time")) {
 
     reply =
       "The current time is " +
-      now.toLocaleTimeString();
+      new Date().toLocaleTimeString("en-IN");
+
+  } else if (text.includes("how are you")) {
+
+    reply =
+      "I am functioning perfectly, sir.";
 
   } else {
 
     reply =
-      "I heard you say " +
+      "I heard you say: " +
       command +
-      ". My AI brain is still being upgraded, sir.";
+      ". My full AI brain is coming soon, sir.";
   }
 
   response.innerHTML = reply;
@@ -87,12 +98,18 @@ function jarvisReply(command) {
 
 function speak(text) {
 
-  const speech = new SpeechSynthesisUtterance(text);
+  if (!("speechSynthesis" in window)) {
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+
+  const speech =
+    new SpeechSynthesisUtterance(text);
 
   speech.lang = "en-IN";
   speech.rate = 0.9;
   speech.pitch = 0.9;
 
-  window.speechSynthesis.cancel();
   window.speechSynthesis.speak(speech);
 }
