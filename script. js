@@ -1,6 +1,98 @@
 const response = document.getElementById("response");
 const mic = document.getElementById("mic");
 
-mic.onclick = function () {
-  response.innerHTML = "Listening, sir...";
-};
+const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+
+let recognition;
+
+if (SpeechRecognition) {
+
+  recognition = new SpeechRecognition();
+
+  recognition.lang = "en-IN";
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  mic.onclick = function () {
+
+    response.innerHTML = "Listening, sir...";
+
+    recognition.start();
+  };
+
+  recognition.onresult = function (event) {
+
+    const command = event.results[0][0].transcript;
+
+    response.innerHTML =
+      "You said:<br><strong>" + command + "</strong>";
+
+    jarvisReply(command);
+  };
+
+  recognition.onerror = function () {
+
+    response.innerHTML =
+      "I couldn't hear you, sir. Please try again.";
+  };
+
+} else {
+
+  response.innerHTML =
+    "Voice recognition is not supported in this browser.";
+}
+
+
+function jarvisReply(command) {
+
+  command = command.toLowerCase();
+
+  let reply;
+
+  if (command.includes("hello") ||
+      command.includes("hi")) {
+
+    reply = "Hello, sir. How may I assist you?";
+
+  } else if (command.includes("your name")) {
+
+    reply = "I am JARVIS, your personal AI assistant.";
+
+  } else if (command.includes("who are you")) {
+
+    reply = "I am JARVIS. I am here to assist you.";
+
+  } else if (command.includes("time")) {
+
+    const now = new Date();
+
+    reply =
+      "The current time is " +
+      now.toLocaleTimeString();
+
+  } else {
+
+    reply =
+      "I heard you say " +
+      command +
+      ". My AI brain is still being upgraded, sir.";
+  }
+
+  response.innerHTML = reply;
+
+  speak(reply);
+}
+
+
+function speak(text) {
+
+  const speech = new SpeechSynthesisUtterance(text);
+
+  speech.lang = "en-IN";
+  speech.rate = 0.9;
+  speech.pitch = 0.9;
+
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(speech);
+}
