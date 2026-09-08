@@ -1,0 +1,6 @@
+const response = document.getElementById("response");
+const mic = document.getElementById("mic");
+
+mic.onclick = function () {
+  response.innerHTML = "Listening, sir...";
+};
